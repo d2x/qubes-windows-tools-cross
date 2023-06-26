@@ -24,7 +24,7 @@ TARGETS=devcon.exe \
 
 OUTDIR=$(PWD)/bin/$(ARCH)
 
-PVDRIVERS_VERSION = 8.2.2
+PVDRIVERS_VERSION = 9.0.0
 
 ifneq ($(DISTFILES_MIRROR),)
 BASE_URL := $(DISTFILES_MIRROR)/qwt-crossbuild

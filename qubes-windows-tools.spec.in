@@ -1,4 +1,4 @@
-%define		xenpv_version 8.2.2
+%define		xenpv_version 9.0.0
 
 Name:		qubes-windows-tools
 Version:	@VERSION@
