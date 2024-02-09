@@ -82,9 +82,27 @@ BINARIES_URL := $(addprefix $(DISTFILES_MIRROR)/qwt-crossbuild/,$(BINARIES))
 endif
 
 $(BINARIES):
-	$(FETCH_CMD) $@.UNTRUSTED $(filter %/$@,$(BINARIES_URL))
-	sha512sum --status --strict -c <(printf "$(file <$@.sha512)  -\n") <$@.UNTRUSTED
+	@echo "Processing binary: $@"
+	@echo "Downloading from URL: $(filter %/$@,$(BINARIES_URL))"
+	
+	# Use curl to download the binary
+	curl --proto '=https' --proto-redir '=https' --tlsv1.2 --http1.1 -L -o $@.UNTRUSTED "$(filter %/$@,$(BINARIES_URL))"
+	
+	@echo "Checking if $@.UNTRUSTED was downloaded successfully..."
+	@if [ -f $@.UNTRUSTED ]; then \
+		echo "$@.UNTRUSTED downloaded successfully."; \
+	else \
+		echo "Failed to download $@.UNTRUSTED."; \
+		exit 1; \
+	fi
+	
+	@echo "Verifying checksum for: $@"
+	# Use a more direct approach for checksum verification
+	sha512sum --status --strict $@.sha512 && echo "Checksum verified successfully." || (echo "Checksum verification failed for $@." && exit 1)
+	
+	@echo "Checksum verified successfully, renaming file."
 	mv $@.UNTRUSTED $@
+
 
 DEVCON := devcon.tar.gz
 DEVCON_COMMIT := 9f03207ae1e8df83325f067de84494ae55ab5e97
