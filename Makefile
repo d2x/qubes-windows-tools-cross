@@ -42,11 +42,35 @@ PVDRIVERS_UPSTREAM := $(notdir $(PVDRIVERS_URLS))
 PVDRIVERS := $(patsubst %.tar,%-$(PVDRIVERS_VERSION).tar,$(PVDRIVERS_UPSTREAM))
 
 $(PVDRIVERS): %-$(PVDRIVERS_VERSION).tar:
-	echo $*
-	$(FETCH_CMD) $@.UNTRUSTED "$(filter %$*.tar,$(PVDRIVERS_URLS))"
-	sha512sum --status --strict -c <(printf "$(file <$@.sha512)  -\n") <$@.UNTRUSTED
-	mv $@.UNTRUSTED $@
-
+	@echo "Processing target: $@"
+	@echo "Driver name without version: $*"
+	
+	# Display the URL being used for the download
+	@echo "Downloading from URL: $(filter %$*.tar,$(PVDRIVERS_URLS))"
+	
+	# Execute the fetch command with the full URL, removing -sSf to make curl verbose
+	curl --proto '=https' --proto-redir '=https' --tlsv1.2 --http1.1 -L -o $@.UNTRUSTED "$(filter %$*.tar,$(PVDRIVERS_URLS))"
+	
+	# Check if the download was successful
+	@echo "Checking if $@.UNTRUSTED was downloaded successfully..."
+	@if [ -f $@.UNTRUSTED ]; then \
+		echo "$@.UNTRUSTED downloaded successfully."; \
+	else \
+		echo "Failed to download $@.UNTRUSTED."; \
+		exit 1; \
+	fi
+	
+	# Show the command being used for checksum verification
+	@echo "Verifying checksum for: $@"
+	# Correcting the usage of sha512sum
+	@sha512sum --status --strict -c $@.sha512
+	@if [ $$? -eq 0 ]; then \
+		echo "Checksum verified successfully, renaming file."; \
+		mv $@.UNTRUSTED $@; \
+	else \
+		echo "Checksum verification failed for $@."; \
+		exit 1; \
+	fi
 
 BINARIES_URL := https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip \
 		https://web.archive.org/web/20100818223107/http://download.microsoft.com/download/9/5/A/95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE/dotNetFx40_Full_x86_x64.exe
