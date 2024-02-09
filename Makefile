@@ -97,11 +97,16 @@ $(BINARIES):
 	fi
 	
 	@echo "Verifying checksum for: $@"
-	# Use a more direct approach for checksum verification
-	sha512sum --status --strict $@.sha512 && echo "Checksum verified successfully." || (echo "Checksum verification failed for $@." && exit 1)
-	
-	@echo "Checksum verified successfully, renaming file."
-	mv $@.UNTRUSTED $@
+	# Correct command to verify checksum
+	@sha512sum --check --status $@.sha512
+	@if [ $$? -eq 0 ]; then \
+		echo "Checksum verified successfully, renaming file."; \
+		mv $@.UNTRUSTED $@; \
+	else \
+		echo "Checksum verification failed for $@."; \
+		exit 1; \
+	fi
+
 
 
 DEVCON := devcon.tar.gz
